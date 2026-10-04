@@ -1,0 +1,18 @@
+# Dependencies / caches
+node_modules/
+npx-cache/
+*.log
+
+# Secrets — never commit keys
+.env
+.env.*
+*.pem
+*.key
+
+# opencode runtime output
+.local/share/opencode/tool-output/
+
+# OS junk
+Thumbs.db
+.DS_Store
+Desktop.ini
