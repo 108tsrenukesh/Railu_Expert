@@ -3,7 +3,7 @@
 ## Indian Railways queries
 
 ### Tool inventory
-- **`railradar_advisory`** — main entry point for any trip question. Adaptive: probes cheaply first (~4-6 API calls), escalates itself to boarding/quota strategies, 60-day scans and connecting itineraries only when seats are tight or no direct train exists. `depth`: `auto` (default) | `simple` | `standard` | `deep`.
+- **`railradar_advisory`** — main entry point for any trip question. Adaptive: probes cheaply first (~5 API calls), escalates itself to boarding/quota strategies, 60-day scans and connecting itineraries only when seats are tight or no direct train exists. `depth`: `auto` (default) | `simple` | `standard` | `deep`.
 - **`railradar_seats`** — 60-day ARP availability scan for one train/class/quota.
 - **`railradar_alternatives`** — boarding/quota strategies only (book-from-origin, board-earlier, alight-later tricks) ranked by confirmation odds.
 - **`railradar_journey_plan`** / **`railradar_trains_between`** — itineraries with transfer risk/connection probability; timetable lookups.

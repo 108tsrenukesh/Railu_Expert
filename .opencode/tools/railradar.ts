@@ -247,6 +247,7 @@ async function computeSeats(args: any): Promise<{ text: string; calls: number }>
     if (!TRAIN_RE.test(train)) throw new Error(`Invalid train number "${args.train}" — expected 4-5 digits, e.g. 12952.`)
     const from = normStation(args.from)
     const to = normStation(args.to)
+    if (from === to) throw new Error(`Origin and destination are the same (${from}) — give two different stations.`)
     const cls = (args.travel_class || "3A").trim().toUpperCase()
     if (!CLASSES.includes(cls)) throw new Error(`Invalid class "${args.travel_class}" — use one of: ${CLASSES.join(", ")}.`)
     const quota = (args.quota || "GN").trim().toUpperCase()
@@ -435,6 +436,7 @@ export const trains_between = tool({
   async execute(args) {
     const from = normStation(args.from)
     const to = normStation(args.to)
+    if (from === to) throw new Error(`Origin and destination are the same (${from}) — give two different stations.`)
     const date = (args.date || "").trim() || undefined
     if (date) parseDate(date)
     const q = new URLSearchParams()
@@ -464,6 +466,7 @@ export const trains_between = tool({
       lines.push(`${String(t.train?.number ?? "?").padEnd(6)} ${String(t.train?.name ?? "").padEnd(34).slice(0, 34)} dep ${dep} → arr ${arr} | ${fmtDur(t.duration)} | ${days}${live}`)
     }
     if (list.length > LIMIT) lines.push(`…and ${list.length - LIMIT} more (narrow with a date).`)
+    if (date) lines.push("(note: upstream ignores the date filter — the run-days column governs; railradar_advisory filters it automatically)")
     lines.push("Source: RailRadar (NTES timetable). Cross-check on irctc.co.in before booking.")
     return lines.join("\n")
   },
@@ -556,6 +559,7 @@ async function computeAlternatives(
 ): Promise<{ lines: string[]; options: AltOption[]; calls: number }> {
   const from = normStation(args.from)
   const to = normStation(args.to)
+  if (from === to) throw new Error(`Origin and destination are the same (${from}) — give two different stations.`)
   const date = (args.date || "").trim() || todayIST()
     parseDate(date)
     const today = todayIST()
@@ -595,12 +599,10 @@ async function computeAlternatives(
     const push = (trainNo: string, trainName: string, src: string, dst: string, note: string) => {
       const key = `${trainNo}|${src}|${dst}`
       if (seen.has(key)) return
-      if (src === from && dst === to && options.length > 0) return
       seen.add(key)
       options.push({ trainNo, trainName, src, dst, note, score: -1, label: "", checked: false })
     }
 
-    let detailed = 0
     const details: any[] = []
     for (const c of cand.slice(0, maxTrains)) {
       let d: any
@@ -611,7 +613,6 @@ async function computeAlternatives(
         lines.push(`  (could not detail train ${c.train?.number}: ${errText(e)})`)
         continue
       }
-      detailed++
       details.push(d)
       const t = d?.data?.train
       const name = t?.name || c.train?.name || ""
@@ -655,10 +656,16 @@ async function computeAlternatives(
       return { lines, options, calls }
     }
 
-    // priority: baselines first (no commitment cost), then origin-booking, then ride changes
+    // priority: baselines first (no commitment cost), then origin-booking, then ride changes;
+    // within each group, trains running that weekday go first so checks aren't spent on non-running days
     const rank = (o: AltOption): number =>
       o.src === from && o.dst === to ? 0 : o.note.startsWith("same ride") ? 1 : 2
-    options.sort((a, b) => rank(a) - rank(b))
+    const runsOn = (trainNo: string): boolean => {
+      const dt = details.find((x) => x?.data?.train?.number === trainNo)
+      const rd: string[] = dt?.data?.train?.runDays || []
+      return rd.includes(wd)
+    }
+    options.sort((a, b) => rank(a) - rank(b) || (runsOn(a.trainNo) ? 0 : 1) - (runsOn(b.trainNo) ? 0 : 1))
 
     const checkQueue = options
       .filter((o) => {
@@ -668,6 +675,16 @@ async function computeAlternatives(
         return av.includes(wantCls)
       })
       .slice(0, maxChecks)
+    if (!checkQueue.length && wantCls) {
+      const offers = details
+        .map((x) => {
+          const t = x?.data?.train
+          const av: string[] = t?.availableClasses || t?.classes || []
+          return `${t?.number ?? "?"} offers ${av.join("/") || "nothing listed"}`
+        })
+        .join("; ")
+      lines.push(`No checks spent — none of the detailed trains offer class ${wantCls}${offers ? ` (${offers})` : ""}.`)
+    }
     for (const o of checkQueue) {
       const t = details.find((d) => d?.data?.train?.number === o.trainNo)
       const avail: string[] = t?.data?.train?.availableClasses || t?.data?.train?.classes || []
@@ -738,7 +755,7 @@ function verdictTier(score: number): string {
 
 export const advisory = tool({
   description:
-    "Adaptive end-to-end journey advisor — the main entry point for trip questions. Starts cheap for easy queries (~4-6 API calls) and escalates by itself only when needed: " +
+    "Adaptive end-to-end journey advisor — the main entry point for trip questions. Starts cheap for easy queries (≤5 API calls) and escalates by itself only when needed: " +
     "boarding/quota strategies (book-from-origin, board-earlier tricks), 60-day window scans, connecting itineraries with per-leg availability, transfer risk and " +
     "confirmation-probability scoring (GNWL/RLWL/PQWL, RAC, chart timing). " +
     "depth: auto (default, escalates only if seats are tight or no direct train) | simple (quick probe only) | standard | deep (everything). Read-only — it never books.",

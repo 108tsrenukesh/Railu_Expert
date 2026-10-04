@@ -10,6 +10,8 @@ Born from two real trips: **Nizamabad → Ujjain** (where the only sane option w
 ![Unofficial](https://img.shields.io/badge/IRCTC-unofficial_tool-blue)
 ![Read only](https://img.shields.io/badge/booking-read--only-green)
 
+> ⚠️ **Disclaimer — read this first.** Railu Expert is built **only for educational and study purposes**. It is **not a commercial product or service**, is **not affiliated** with Indian Railways, IRCTC, CRIS, NTES, RailRadar or Bright Data, and **guarantees nothing** — seat availability is a third-party snapshot that moves as people book and cancel, delay figures are modelled estimates, and railway rules change over time and by zone. **You use it entirely at your own risk.** Before relying on it for any real trip, understand its capabilities, features and prerequisites (see *What it does*, *Setup*, *Limitations* and *Compliance & fair use* below — especially what it *cannot* do), arrange those prerequisites yourself (opencode + model access, your own free-tier API keys), and **always re-verify the exact date, class, quota, fare and running status on [irctc.co.in](https://www.irctc.co.in) or by dialling 139 before spending money.**
+
 ---
 
 ## What it does
@@ -82,11 +84,12 @@ All RailRadar logic lives in one dependency-free file (`.opencode/tools/railrada
 
 | Tool | Job | Typical cost |
 |---|---|---|
-| `railradar_advisory` | ⭐ Main entry. Adaptive end-to-end advisor: probes, escalates, verdicts | 4 → ~25 calls |
-| `railradar_alternatives` | Boarding/quota strategies per train, ranked by confirmation odds | ~6–12 calls |
+| `railradar_advisory` | ⭐ Main entry. Adaptive end-to-end advisor: probes, escalates, verdicts | ≤5 (simple) → ≤32 (deep) |
+| `railradar_alternatives` | Boarding/quota strategies per train, ranked by confirmation odds | ≤12 at defaults (≤19 max) |
 | `railradar_seats` | 60-day availability scan, one train/class/quota | 5 calls/full window |
 | `railradar_journey_plan` | Multi-stop & connecting itineraries with transfer risk | 1 call |
 | `railradar_trains_between` | Timetable lookup between two stations | 1 call |
+| `railradar_rules` | Daily railway-rules sync store (file-backed) | 0 calls |
 
 Plus `indian-rail_*` (live status, PNR, charts) and `brightdata_*` (news) from the MCP servers.
 
@@ -113,7 +116,7 @@ Rules baked in: **GNWL > RLWL > PQWL** priority · 60-day ARP window · Tatkal o
 ### Prerequisites
 
 - [opencode](https://opencode.ai) (tested on v1.18.x) + any LLM provider configured in it
-- Node.js 18+ (for `npx` MCP servers)
+- Node.js 20+ (for `npx` MCP servers — `indian-rail-mcp` requires Node 20 or newer)
 - A **RailRadar API key** ([railradar.in](https://railradar.in) → API portal, free 1K calls/month) — required
 - A **Bright Data API token** ([brightdata.com](https://brightdata.com) → account settings, free 5K calls/month) — optional, news only
 
@@ -124,6 +127,7 @@ git clone https://github.com/108tsrenukesh/Railu_Expert.git
 cd Railu_Expert
 
 # 1. Keys live ONLY in environment variables — never in files.
+# The values below are placeholders: sign up for your own free keys, never share them, never commit them.
 [Environment]::SetEnvironmentVariable("RAILRADAR_API_KEY", "rr_live_YOUR_KEY", "User")
 [Environment]::SetEnvironmentVariable("BRIGHTDATA_API_TOKEN", "YOUR_TOKEN", "User")  # optional
 
@@ -147,7 +151,7 @@ Ask opencode: *"Call `railradar_trains_between` with from=NDLS, to=BPL."* — yo
 
 > *NGP to HWH on 11 Oct, 3A — will it confirm, and what's my best option?*
 
-The advisor probes the fastest trains, finds waitlists, escalates on its own, and returns something like:
+The advisor probes the fastest trains, finds waitlists, escalates on its own, and returns something like (sample from a live run, Oct 2026 — your numbers will differ):
 
 ```
 Direct trains NGP → HWH on 2026-10-11 (SUN): 5 running of 6 total. Fastest first:
@@ -204,12 +208,12 @@ Before you pay, the protocol demands a news check: *"Nagpur Howrah train news"*,
 
 | Action | RailRadar calls |
 |---|---|
-| Quick probe (`simple`) | ~4 |
-| Auto advisory, easy route | ~4–6 |
-| Auto advisory, tight seats | ~10–15 |
+| Quick probe (`simple`) | ≤5 |
+| Auto advisory, easy route | ≤5 |
+| Auto advisory, tight seats | ≤17 |
 | Full 60-day scan (one train/class) | 5 |
-| Alternatives workup | ~6–12 |
-| Deep end-to-end | ~20–30 |
+| Alternatives workup | ≤12 at defaults (≤19 max) |
+| Deep end-to-end | ≤32 |
 | Free tier | **1,000/month** |
 
 Built-in quota hygiene: 10-minute response cache (repeat reads in one session don't re-spend), class pre-validation (never burns a seat-check on a class the train doesn't offer), client-side run-day filtering, and every run reports its exact call count.
@@ -226,7 +230,7 @@ Railu_Expert/
 ├── AGENTS.md                    ← the playbook: routing, rules, safety, budgets
 └── .opencode/
     └── tools/
-        └── railradar.ts         ← all 5 tools, zero dependencies (fetch only)
+        └── railradar.ts         ← all 6 tools, zero dependencies (fetch only)
 ```
 
 ## Compliance & fair use
