@@ -64,7 +64,7 @@ You control it: `simple` (peek), `auto` (default — escalates on its own), `sta
 
 - **RailRadar API** (`api.railradar.in`) — PRS seat calendars, timetables, journey planner. Free tier: **1,000 calls/month**.
 - **`indian-rail` MCP** (`indian-rail-mcp`, local) — official NTES/IRCTC feeds: live running status, schedules, station boards, chart vacancy, PNR.
-- **Bright Data MCP** (optional) — corridor news search + article scraping with bot-detection bypass. Free tier: **5,000 calls/month**. Falls back to built-in web search when unconfigured.
+- **Bright Data MCP** (optional) — corridor news search + article scraping with bot-detection bypass. Free tier: **5,000 calls/month**. Falls back to built-in web search when unconfigured. Note (verified Oct 2026): on a fresh account the search tools connect fine but can return empty results until search zones are activated in the Bright Data dashboard — the built-in fallback covers news either way.
 - **Your brain + IRCTC** — the final booking always happens on [irctc.co.in](https://www.irctc.co.in). This project is **read-only**: it never books, cancels, or holds anything.
 
 ### How this got better than what's out there
