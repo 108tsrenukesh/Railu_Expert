@@ -27,6 +27,7 @@
 - Charts prepare ~4-8h before departure; after that only cancellations/VACANCY clear lists.
 - Booking window (ARP) is 60 days; advisory/seat tools enforce it.
 - Transfer risk and `connectionProbability` come from `railradar_journey_plan` — surface them for multi-leg trips.
+- Seats coverage: daily trains return full calendars; weekly/special trains often return no data — for those, check dates/classes on irctc.co.in directly instead of retrying.
 
 ### Safety & budget (non-negotiable)
 1. **Accuracy** — RailRadar/PRS data is a snapshot. Before the user spends money, tell them to confirm the exact date/class/quota on irctc.co.in. Never present tool numbers as guaranteed.

@@ -243,6 +243,7 @@ Every data source here is someone else's service with its own rules. This projec
 
 ## Limitations (honest list)
 - RailRadar data is a **snapshot** of PRS, not IRCTC live inventory — always re-check before paying.
+- Seats-calendar coverage is best on daily trains; weekly and special trains often return no data — check those dates on IRCTC directly.
 - Free-tier quotas are real (we exhausted RailRadar's 1,000 calls in one heavy test month — the cache above exists because of that lesson).
 - `trains/between` date filtering is applied client-side via run-days (the API sometimes returns off-day trains).
 - NTES-sourced live data has quirks (partial station lists on completed runs).
