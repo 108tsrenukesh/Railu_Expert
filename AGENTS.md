@@ -19,6 +19,7 @@
 6. **Live status / delay / platform / coach position / PNR** → `indian-rail` first (reads NTES).
 7. **News & disruptions (mandatory before recommending a long booking)** → run 1-2 web searches: `"<corridor> train news today"`, plus `flood / fog / strike / blockade / accident / rally` for the route and the train's last-week running history. Use Bright Data `search_engine_batch` (then `scrape_as_markdown` on the hits) when available, else built-in websearch. Summarize impact on the recommended option.
 8. **Tatkal/special quotas** → `railradar_seats` with `quota=TQ/PT`; note TQ opens 10:00 (AC) / 11:00 (non-AC) one day before travel.
+9. **Degraded mode (RailRadar 429 / quota exhausted)** → `indian-rail` has no monthly quota (NTES/IRCTC direct). Fall back to it: `searchTrainBetweenStations` for options, `getSeatAvailability` for vacancy (meaningful only after chart preparation, ~4h before departure), `trackTrain` for live running. Tell the user full-window scans and confirmation scoring resume after the RailRadar reset; do not retry RailRadar in a loop.
 
 ### Interpretation rules (confirmation probability)
 - Order of difficulty: **AVAILABLE > RAC > GNWL > RLWL > PQWL**; waitlist number lower = better; more days before chart = better.

@@ -64,6 +64,17 @@ You control it: `simple` (peek), `auto` (default — escalates on its own), `sta
 - **Bright Data MCP** (optional) — corridor news search + article scraping with bot-detection bypass. Free tier: **5,000 calls/month**. Falls back to built-in web search when unconfigured.
 - **Your brain + IRCTC** — the final booking always happens on [irctc.co.in](https://www.irctc.co.in). This project is **read-only**: it never books, cancels, or holds anything.
 
+### Why this stack (alternatives evaluated)
+
+| Option | Sources & shape | Verdict |
+|---|---|---|
+| `mahi-v-v/indian-rail-mcp` ✅ chosen | NTES + IRCTC direct, local stdio, typed errors, PNR gating, on npm | Official sources, no key, privacy-safe |
+| `rajprem4214/indian-railways-mcp` | Scrapes erail.in (+ confirmtkt for PNR), not on npm (clone + build) | Rejected: third-party scrape, weaker ToS posture, no PNR-privacy handling, feature subset |
+| `amith-vp/indian-railway-mcp` | Hosted remote MCP | Rejected: endpoint down (HTTP 525) and npm 404 when evaluated |
+| RailRadar API ✅ chosen | PRS calendars + journey planner, keyed, 1K calls/mo free | Chosen for scans/strategies; quota budgeted per run |
+
+The stack also degrades gracefully: if the RailRadar quota is exhausted, the quota-free NTES/IRCTC-direct tools keep answering (see AGENTS.md degraded mode).
+
 ---
 
 ## The toolkit
