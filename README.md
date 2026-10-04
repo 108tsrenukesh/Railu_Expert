@@ -21,6 +21,7 @@ Born from two real trips: **Nizamabad → Ujjain** (where the only sane option w
 | "NZB → UJN has no direct train" | Connecting itineraries with per-leg availability, transfer risk and connection probability |
 | "Is WL 12 worth booking?" | Confirmation-odds verdict using GNWL/RLWL/PQWL priority, RAC math and chart timing |
 | "Will fog ruin my December trip?" | Corridor news check (fog, floods, strikes, blocks) before you pay |
+| "Are these the current rules?" | Railway rules re-synced from official sources once a day, reused all day |
 
 And it does all of this **adaptively**: simple questions cost ~4 API calls, full investigations scale up only when seats are actually tight. No overkill.
 

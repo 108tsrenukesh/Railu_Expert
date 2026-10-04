@@ -12,6 +12,9 @@ npx-cache/
 # opencode runtime output
 .local/share/opencode/tool-output/
 
+# daily railway-rules sync cache (per-machine, re-synced each day)
+.opencode/rules-cache.json
+
 # OS junk
 Thumbs.db
 .DS_Store

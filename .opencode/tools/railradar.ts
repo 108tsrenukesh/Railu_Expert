@@ -1,5 +1,7 @@
 import { tool } from "@opencode-ai/plugin"
 import { execFileSync } from "node:child_process"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
 
 const BASE = "https://api.railradar.in/v1"
 const TIMEOUT_MS = 20000
@@ -57,6 +59,60 @@ function cacheKey(path: string, init?: RequestInit): string {
   const b = typeof init?.body === "string" ? init.body : ""
   return `${m} ${path} ${b}`
 }
+
+// Daily railway-rules sync store. Railway rules (booking window, tatkal timings,
+// chart preparation, quotas, refunds, zone-specific orders) change regularly, so the
+// agent re-syncs them via web research once per day and every tool/answer reuses the
+// same digest. File-backed (`.opencode/rules-cache.json`, git-ignored), costs no API quota.
+const RULES_CACHE_FILE = ".opencode/rules-cache.json"
+
+type RulesCache = { date: string; syncedAt: string; digest: string }
+
+function readRulesCache(): RulesCache | null {
+  try {
+    const p = join(process.cwd(), RULES_CACHE_FILE)
+    if (!existsSync(p)) return null
+    const j = JSON.parse(readFileSync(p, "utf8"))
+    if (j && typeof j.date === "string" && typeof j.digest === "string") return j as RulesCache
+    return null
+  } catch {
+    return null
+  }
+}
+
+export const rules = tool({
+  description:
+    "Daily railway-rules sync store. Call action=get first on the day's first railway question: it returns today's cached rules digest, or reports missing/stale. " +
+    "If missing/stale, research current rules via web search (booking window, tatkal timings, chart preparation, quotas, refunds, plus zone-specific orders for the journey's zones), " +
+    "then store the compact digest (rules + sources + effective dates) with action=save. Reuse the digest all day — never re-research per question. File-backed, zero API quota.",
+  args: {
+    action: tool.schema.string().describe('get (read today\'s digest) or save (store a freshly researched digest)'),
+    digest: tool.schema.string().optional().describe("For action=save: compact researched digest with sources + effective dates."),
+  },
+  async execute(args) {
+    const action = String(args.action || "get").toLowerCase()
+    if (action !== "get" && action !== "save") throw new Error('action must be "get" or "save"')
+    const today = todayIST()
+    if (action === "get") {
+      const c = readRulesCache()
+      if (!c) return "RULES SYNC: missing — no digest cached yet. Research current rules via web search, then save with action=save."
+      if (c.date !== today)
+        return `RULES SYNC: stale (cached ${c.date}, today ${today}). Re-research and save fresh. Last digest kept below for reference:\n${c.digest}`
+      return `RULES SYNC: fresh (synced ${c.syncedAt}). Reuse this digest for all railway answers today:\n${c.digest}`
+    }
+    const digest = String(args.digest || "").trim()
+    if (digest.length < 50)
+      throw new Error("digest too short — save a real researched digest (rules + sources + effective dates), not a placeholder.")
+    const payload: RulesCache = { date: today, syncedAt: new Date().toISOString(), digest: digest.slice(0, 4000) }
+    try {
+      mkdirSync(join(process.cwd(), ".opencode"), { recursive: true })
+      writeFileSync(join(process.cwd(), RULES_CACHE_FILE), JSON.stringify(payload, null, 2))
+    } catch (e) {
+      throw new Error(`could not write rules cache: ${errText(e)}`)
+    }
+    return `RULES SYNC: saved for ${today} (${digest.length} chars). All railway answers today must follow this digest.`
+  },
+})
 
 async function api(path: string, init?: RequestInit): Promise<any> {
   const k = apiKey()
@@ -954,6 +1010,12 @@ export const advisory = tool({
     out.push(
       "Before paying: re-check the exact date/class/quota and the fare on irctc.co.in (flexi/dynamic fares vary by train and demand; this tool never books). " +
         'For disruptions run a web search like "<corridor> train news today / flood / fog / strike / blockade" and check the train\'s last-week running history.',
+    )
+    const rc = readRulesCache()
+    out.push(
+      rc && rc.date === today
+        ? `Railway rules: synced today (${rc.syncedAt.slice(0, 16).replace("T", " ")} UTC) — this verdict follows that digest.`
+        : "Railway rules: NOT synced today — run railradar_rules (action=get; refresh via web research + save if stale) before relying on rule-sensitive claims.",
     )
     out.push(`Depth used: ${mode} | ${calls} RailRadar API calls this run (free tier 1,000/month).`)
     return out.join("\n")
