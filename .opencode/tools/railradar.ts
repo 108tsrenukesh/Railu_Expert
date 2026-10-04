@@ -952,7 +952,7 @@ export const advisory = tool({
         "ladies/senior quotas can be easier (railradar_seats quota=LD/SS).",
     )
     out.push(
-      "Before paying: re-check the exact date/class/quota on irctc.co.in (this tool never books). " +
+      "Before paying: re-check the exact date/class/quota and the fare on irctc.co.in (flexi/dynamic fares vary by train and demand; this tool never books). " +
         'For disruptions run a web search like "<corridor> train news today / flood / fog / strike / blockade" and check the train\'s last-week running history.',
     )
     out.push(`Depth used: ${mode} | ${calls} RailRadar API calls this run (free tier 1,000/month).`)

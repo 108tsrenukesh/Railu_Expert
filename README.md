@@ -72,6 +72,7 @@ You control it: `simple` (peek), `auto` (default — escalates on its own), `sta
 | `rajprem4214/indian-railways-mcp` | Scrapes erail.in (+ confirmtkt for PNR), not on npm (clone + build) | Rejected: third-party scrape, weaker ToS posture, no PNR-privacy handling, feature subset |
 | `amith-vp/indian-railway-mcp` | Hosted remote MCP | Rejected: endpoint down (HTTP 525) and npm 404 when evaluated |
 | RailRadar API ✅ chosen | PRS calendars + journey planner, keyed, 1K calls/mo free | Chosen for scans/strategies; quota budgeted per run |
+| Apify `scrapingshark/irctc-train-data-scraper` | Cloud actor scraping the IRCTC website (pay-per-use) | Rejected: targets a protected booking site — against our scraper policy and IRCTC's automation defenses (66% run success, 2 monthly users); paid usage breaks the free-for-user aim; cloud execution breaks the PNR-privacy posture |
 
 The stack also degrades gracefully: if the RailRadar quota is exhausted, the quota-free NTES/IRCTC-direct tools keep answering (see AGENTS.md degraded mode).
 
