@@ -44,4 +44,4 @@ Every suggestion must pass all five checks — safe, stable, complete, rule-foll
 3. **Stable** — evidence of reliability (maintained, tested, typed errors, timeouts/retries) and honest signals (stars, users, success rates). Fragile positional parsing of third-party markup fails this bar.
 4. **Complete** — it must fill a gap our stack genuinely lacks; overlapping features alone are not a reason to add a dependency.
 5. **Free for a usual user** — must fit inside free tiers (RailRadar 1K/mo, Bright Data 5K/mo, keyless local tools). Reject anything pay-per-use or account-gated beyond a free key.
-Record the decision and reasons in the README's alternatives table either way.
+Record the decision and reasons generically (what class of tool was evaluated, what we improved) without naming specific third-party projects.

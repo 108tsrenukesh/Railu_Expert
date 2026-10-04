@@ -64,17 +64,14 @@ You control it: `simple` (peek), `auto` (default — escalates on its own), `sta
 - **Bright Data MCP** (optional) — corridor news search + article scraping with bot-detection bypass. Free tier: **5,000 calls/month**. Falls back to built-in web search when unconfigured.
 - **Your brain + IRCTC** — the final booking always happens on [irctc.co.in](https://www.irctc.co.in). This project is **read-only**: it never books, cancels, or holds anything.
 
-### Why this stack (alternatives evaluated)
+### How this got better than what's out there
 
-| Option | Sources & shape | Verdict |
-|---|---|---|
-| `mahi-v-v/indian-rail-mcp` ✅ chosen | NTES + IRCTC direct, local stdio, typed errors, PNR gating, on npm | Official sources, no key, privacy-safe |
-| `rajprem4214/indian-railways-mcp` | Scrapes erail.in (+ confirmtkt for PNR), not on npm (clone + build) | Rejected: third-party scrape, weaker ToS posture, no PNR-privacy handling, feature subset |
-| `amith-vp/indian-railway-mcp` | Hosted remote MCP | Rejected: endpoint down (HTTP 525) and npm 404 when evaluated |
-| RailRadar API ✅ chosen | PRS calendars + journey planner, keyed, 1K calls/mo free | Chosen for scans/strategies; quota budgeted per run |
-| Apify `scrapingshark/irctc-train-data-scraper` | Cloud actor scraping the IRCTC website (pay-per-use) | Rejected: targets a protected booking site — against our scraper policy and IRCTC's automation defenses (66% run success, 2 monthly users); paid usage breaks the free-for-user aim; cloud execution breaks the PNR-privacy posture |
-
-The stack also degrades gracefully: if the RailRadar quota is exhausted, the quota-free NTES/IRCTC-direct tools keep answering (see AGENTS.md degraded mode).
+Before building, the existing tools doing similar work were evaluated — and the gaps found shaped this project:
+- **Official sources over scrapes** — live data comes from NTES/IRCTC-direct feeds, not fragile third-party markup parsing that silently returns wrong fields when a site changes layout.
+- **Advice, not just data** — confirmation-odds scoring (GNWL/RLWL/PQWL, RAC, chart timing) plus boarding/quota strategies that get actually checked, instead of raw status dumps.
+- **Quota-respectful by design** — every run reports its exact API cost, responses are cached, and a degraded mode keeps answering from quota-free sources when the monthly budget runs out.
+- **Privacy-first** — everything runs locally on your machine; PNR and chart data never leave it and are never stored.
+- **Policy-fenced** — each user brings their own API keys, web scraping is limited to public news, and compliance notes ship with the project.
 
 ---
 
