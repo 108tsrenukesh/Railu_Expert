@@ -36,3 +36,12 @@
 6. **PNR privacy** — `checkPnrStatus` returns passenger personal data (names, age, berth). Look up one PNR at a time; never log, store, share or enumerate PNRs.
 7. **No bulk extraction** — per-trip queries only. Never systematically download timetables, station catalogues or seat data into a database; respect call budgets and caches. NTES data is for personal, non-commercial use (see NTES disclaimer); keep `indian-rail` on local stdio, never route PNR/chart queries through hosted proxies.
 8. **Bright Data scope** — public news and articles only (corridor disruptions for a planned trip). Never point it at login-walled, government or booking sites (IRCTC/NTES), and never at ticket purchasing or automation of any kind.
+
+### Adoption gate (before adding any third-party tool, service or data source)
+Every suggestion must pass all five checks — safe, stable, complete, rule-following — or it is rejected regardless of how attractive its features look:
+1. **Rules first** — read its Terms of Service / Acceptable Use Policy and the terms of whatever it scrapes or calls. Reject if it scrapes login-walled, government or booking sites, automates ticket purchase, or resells proxied data against the provider's policy.
+2. **Safe** — official or licensed sources preferred over third-party scrapes; PNR/personal data must stay local (stdio) with no logging or storage; no credential-sharing designs.
+3. **Stable** — evidence of reliability (maintained, tested, typed errors, timeouts/retries) and honest signals (stars, users, success rates). Fragile positional parsing of third-party markup fails this bar.
+4. **Complete** — it must fill a gap our stack genuinely lacks; overlapping features alone are not a reason to add a dependency.
+5. **Free for a usual user** — must fit inside free tiers (RailRadar 1K/mo, Bright Data 5K/mo, keyless local tools). Reject anything pay-per-use or account-gated beyond a free key.
+Record the decision and reasons in the README's alternatives table either way.
